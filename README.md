@@ -62,13 +62,30 @@ Conditional logging refers to the ability to dynamically lower the level of logg
 ## Flush level and default level
 ScopedConditionalMemoryHandler can be customized by providing two different logging levels: default level and flush level. Default level is the one used when the end of a scope is reached and no flush condition is encountered. For example, if the default level is set to INFO, the code below will only emit log records of INFO level and above:
 ```python
-with TraceScope("blah-op", self.logger) as trace:
+with TraceScope("some-op", self.logger) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
     # no flush condition encountered, so DEBUG level logs are discarded at the end of the scope
 ```
 
-Flush condition is triggered by any logging at the customizable *flush_level* or above. For example, if the flush level set to *WARNING*, any log call with level of WARNING or ERROR will trigger the flush condition. Slow operation detection is implemented in TraceScope by providing a threshold latency above which a WARNING is emitted thus triggering a flush condition if the flush level is set to WARNING
+Flush level is the one that defines a flush condition. Basically, flush condition is triggered by any logging at the customizable *flush_level* or above. For example, if the flush level set to *WARNING*, any log call with level of WARNING or ERROR will trigger the flush condition. Example:
+```python
+with TraceScope("some-op", self.logger, log_level=logging.INFO) as trace:
+    trace.info(info_key="info_val")
+    trace.debug(debug_key="debug_val")
+    trace.error(error_key="error_val")
+    # the .error call above will trigger flush condition and therefore the output of the DEBUG level info
+```
+
+Slow operation detection is implemented in TraceScope by providing a threshold latency above which a WARNING is emitted thus triggering a flush condition if the flush level is set to WARNING.
+```python
+with TraceScope("some-op", self.logger, warn_duration=1) as trace:
+    trace.info(info_key="info_val")
+    trace.debug(debug_key="debug_val")
+    time.sleep(0.002) # sleep for 2 milliseconds, which is slower than warn_duration
+
+# the "slowness" in the scope above will trigger a warning and thus a flush condition, if flush level is set to WARNING
+```
 
 There are two alternative approaches to the way scopes could be handled in case of a flush condition that make sense.
 
