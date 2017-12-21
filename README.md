@@ -34,4 +34,30 @@ Trace scope is a fundamental concept that many other elements of the design are 
 
 ![Scope Tree](scope_tree.svg "Figure 2")
 
+Implementation uses thread local storage since only one trace scope can be active at any given time within a given thread (assuming there's no *async io*).
+
+Common use patterns for the TraceScope objects include:
+
+* wrapping an operation in with(...) statement
+
+```python
+tags = {
+        'uuid': user_id,
+        'request': request,
+        'service_name': name,
+        'service_version': "%s.%s" % (major, minor),
+        'service_url': self._ftam_client.url()
+}
+with TraceScope('basnet.sendRequest', logger, details=tags) as ts:
+    response = self._ftam_client.sendRequest(request)
+```
+
+* use @trace_me decorator to instrument a function of method
+
+```python
+@trace_me(logger, 'BcsStore')
+    def get_stream(self, obj_hash, obj_type):
+      ...
+```
+
 # Conditional logging
