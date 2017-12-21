@@ -41,13 +41,7 @@ Common use patterns for the TraceScope objects include:
 * wrapping an operation in with(...) statement
 
 ```python
-tags = {
-        'uuid': user_id,
-        'request': request,
-        'service_name': name,
-        'service_version': "%s.%s" % (major, minor),
-        'service_url': self._ftam_client.url()
-}
+tags = { 'uuid': user_id, 'service_name': name, 'service_version': "%s.%s" % (major, minor) }
 with TraceScope('basnet.sendRequest', logger, details=tags) as ts:
     response = self._ftam_client.sendRequest(request)
 ```
