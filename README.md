@@ -30,5 +30,8 @@ Figure 1 shows a brief overview of main classes and the way they are related to 
 
 # Trace Scope
 
+Trace scope is a fundamental concept that many other elements of the design are based on. It's the abstraction that models hierarchical structure of instrumented code. Each trace scope has an Id and a reference to its parent (via parent id). Current way of Id generation is hierarchical as well, which allows exploring parent/child relations by inspecting scope ids. Figiure 2 illustrates this on a simple example of interactions happening when handling the data upload message.
+
+![Scope Tree](scope_tree.svg "Figure 2")
 
 # Conditional logging
