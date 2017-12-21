@@ -74,7 +74,7 @@ with TraceScope("some-op", logger, log_level=logging.INFO) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
     trace.error(error_key="error_val")
-    # the .error call above will trigger flush condition and therefore the output of the DEBUG level info
+    # the .error call will trigger flush condition and therefore the output of the DEBUG level info
 ```
 
 Slow operation detection is implemented in TraceScope by providing a threshold latency above which a WARNING is emitted thus triggering a flush condition if the flush level is set to WARNING.
@@ -83,8 +83,7 @@ with TraceScope("some-op", logger, warn_duration=1) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
     time.sleep(0.002) # sleep for 2 milliseconds, which is slower than warn_duration
-
-# the "slowness" in the scope above will trigger a warning and thus a flush condition, if flush level is set to WARNING
+# sleep will trigger a warning and thus a flush condition, if flush level is set to WARNING
 ```
 
 There are two alternative approaches to the way scopes could be handled in case of a flush condition that make sense.
