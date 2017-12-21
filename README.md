@@ -77,6 +77,21 @@ def get_stream(self, obj_hash, obj_type):
    ...
 ```
 
+# Multi-threading support
+
+Since trace scopes are maintained using thread local context, there's not need in explicitly passing them as arguments in most cases. However, when processing is split between multiple threads, trace context needs to be passed explicitly. This can be done using the *propagate_trace* package function as follows:
+
+```python
+@trace_me(logger)
+def my_function():
+    ts = TraceScope.current_scope()
+    results = list(
+        self._thread_pool.map(lambda d: propagate_trace(my_thread_function, ts, action, d), data))
+        
+def my_thread_function(d):
+    ...
+```
+
 # Conditional logging
 
 ## Overview 
