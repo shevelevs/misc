@@ -24,6 +24,25 @@ Example format string:
 
 Currently, standard format for all named arguments to the log calls is a form key=value, where value is recursively formatted for types such as dict and list. Large values are truncated.
 
+Sample log content:
+```python
+with TraceScope("some-op", logger, log_level=logging.INFO) as trace:
+    trace.info(info_key="info_val")
+    trace.debug(debug_key="debug_val")
+    with TraceScope("nested-op", logger, log_level=logging.DEBUG) as nested_trace:
+        nested_trace.debug(nested_debug_key="nested_debug_val")
+        nested_trace.error(error_key="error_val")
+```
+> test - INFO - trace_id=aeb355 event=started op=[some-op]
+> test - INFO - trace_id=aeb355 event=detail info_key=[info_val]
+> test - DEBUG - trace_id=aeb355 event=detail debug_key=[debug_val]
+> test - DEBUG - trace_id=aeb355.73 event=started op=[nested-op]
+> test - DEBUG - trace_id=aeb355.73 event=detail nested_debug_key=[nested_debug_val]
+> test - ERROR - trace_id=aeb355.73 event=error error_key=[error_val]
+> test - DEBUG - trace_id=aeb355.73 event=finished dur_ms=0 success=False
+> test - DEBUG - trace_id=aeb355 event=detail dict_key=[a=1 c=[d=0] b=[1 2]]
+> test - INFO - trace_id=aeb355 event=finished dur_ms=0 success=True
+
 # Classes
 
 Figure 1 shows a brief overview of main classes and the way they are related to standard python logging classes:
