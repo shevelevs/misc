@@ -33,15 +33,17 @@ with TraceScope("some-op", logger, log_level=logging.INFO) as trace:
         nested_trace.debug(nested_debug_key="nested_debug_val")
         nested_trace.error(error_key="error_val")
 ```
-> test - INFO - trace_id=aeb355 event=started op=[some-op]
-> test - INFO - trace_id=aeb355 event=detail info_key=[info_val]
-> test - DEBUG - trace_id=aeb355 event=detail debug_key=[debug_val]
-> test - DEBUG - trace_id=aeb355.73 event=started op=[nested-op]
-> test - DEBUG - trace_id=aeb355.73 event=detail nested_debug_key=[nested_debug_val]
-> test - ERROR - trace_id=aeb355.73 event=error error_key=[error_val]
-> test - DEBUG - trace_id=aeb355.73 event=finished dur_ms=0 success=False
-> test - DEBUG - trace_id=aeb355 event=detail dict_key=[a=1 c=[d=0] b=[1 2]]
-> test - INFO - trace_id=aeb355 event=finished dur_ms=0 success=True
+```
+test - INFO - trace_id=aeb355 event=started op=[some-op]
+test - INFO - trace_id=aeb355 event=detail info_key=[info_val]
+test - DEBUG - trace_id=aeb355 event=detail debug_key=[debug_val]
+test - DEBUG - trace_id=aeb355.73 event=started op=[nested-op]
+test - DEBUG - trace_id=aeb355.73 event=detail nested_debug_key=[nested_debug_val]
+test - ERROR - trace_id=aeb355.73 event=error error_key=[error_val]
+test - DEBUG - trace_id=aeb355.73 event=finished dur_ms=0 success=False
+test - DEBUG - trace_id=aeb355 event=detail dict_key=[a=1 c=[d=0] b=[1 2]]
+test - INFO - trace_id=aeb355 event=finished dur_ms=0 success=True
+```
 
 # Classes
 
