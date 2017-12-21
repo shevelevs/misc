@@ -62,7 +62,7 @@ Conditional logging refers to the ability to dynamically lower the level of logg
 ## Flush level and default level
 ScopedConditionalMemoryHandler can be customized by providing two different logging levels: default level and flush level. Default level is the one used when the end of a scope is reached and no flush condition is encountered. For example, if the default level is set to INFO, the code below will only emit log records of INFO level and above:
 ```python
-with TraceScope("some-op", self.logger) as trace:
+with TraceScope("some-op", logger) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
     # no flush condition encountered, so DEBUG level logs are discarded at the end of the scope
@@ -70,7 +70,7 @@ with TraceScope("some-op", self.logger) as trace:
 
 Flush level is the one that defines a flush condition. Basically, flush condition is triggered by any logging at the customizable *flush_level* or above. For example, if the flush level set to *WARNING*, any log call with level of WARNING or ERROR will trigger the flush condition. Example:
 ```python
-with TraceScope("some-op", self.logger, log_level=logging.INFO) as trace:
+with TraceScope("some-op", logger, log_level=logging.INFO) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
     trace.error(error_key="error_val")
@@ -79,7 +79,7 @@ with TraceScope("some-op", self.logger, log_level=logging.INFO) as trace:
 
 Slow operation detection is implemented in TraceScope by providing a threshold latency above which a WARNING is emitted thus triggering a flush condition if the flush level is set to WARNING.
 ```python
-with TraceScope("some-op", self.logger, warn_duration=1) as trace:
+with TraceScope("some-op", logger, warn_duration=1) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
     time.sleep(0.002) # sleep for 2 milliseconds, which is slower than warn_duration
@@ -90,6 +90,22 @@ with TraceScope("some-op", self.logger, warn_duration=1) as trace:
 There are two alternative approaches to the way scopes could be handled in case of a flush condition that make sense.
 
 1. Bubble up. In this approach, flush conditions for each scope are handled independently of flush conditions in its sibling or child scopes. Once the flush condition is encountered, records for the current scope are flushed and flush condition is propagated to its parent scope. This ensures that we output all the details that led to the error, but if the error is occured in the parent scope, we don't need to output details of the child scope. Examples:
+```python
+with TraceScope("some-op", logger) as trace:
+    trace.info(info_key="info_val")
+    trace.debug(debug_key="debug_val")
+    with TraceScope("nested-op", logger) as nested_trace:
+        nested_trace.debug(nested_debug_key="nested_debug_val")
+        nested_trace.error(error_key="error_val")
+        # since flush condition is triggered by the .error above, both nested_debug_val and debug_val are logged
 
+with TraceScope("some-op", logger) as trace:
+    trace.info(info_key="info_val")
+    trace.debug(debug_key="debug_val")
+    with TraceScope("nested-op", logger) as nested_trace:
+        nested_trace.debug(nested_debug_key="nested_debug_val")
+    trace.error(error_key="error_val")
+    # since flush condition is triggered by the .error in the parent scope, nested_debug_val is not logged
+```
 
 2. Trickle down. 
