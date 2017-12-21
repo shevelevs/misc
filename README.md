@@ -52,12 +52,12 @@ with TraceScope('basnet.sendRequest', logger, details=tags) as ts:
     response = self._ftam_client.sendRequest(request)
 ```
 
-* use @trace_me decorator to instrument a function of method
+* use of the @trace_me decorator to instrument a function of method
 
 ```python
 @trace_me(logger, 'BcsStore')
-    def get_stream(self, obj_hash, obj_type):
-      ...
+def get_stream(self, obj_hash, obj_type):
+   ...
 ```
 
 # Conditional logging
