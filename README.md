@@ -91,6 +91,7 @@ There are two alternative approaches to the way scopes could be handled in case 
 
 1. Bubble up. In this approach, flush conditions for each scope are handled independently of flush conditions in its sibling or child scopes. Once the flush condition is encountered, records for the current scope are flushed and flush condition is propagated to its parent scope. This ensures that we output all the details that led to the error, but if the error is occured in the parent scope, we don't need to output details of the child scope. Examples:
 ```python
+# example 1.1
 with TraceScope("some-op", logger) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
@@ -99,6 +100,7 @@ with TraceScope("some-op", logger) as trace:
         nested_trace.error(error_key="error_val")
         # since flush condition is triggered by the .error above, both nested_debug_val and debug_val are logged
 
+# example 1.2
 with TraceScope("some-op", logger) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
@@ -108,4 +110,17 @@ with TraceScope("some-op", logger) as trace:
     # since flush condition is triggered by the .error in the parent scope, nested_debug_val is not logged
 ```
 
-2. Trickle down. 
+2. Trickle down. In this approach, flush conditions encountered in parent scope propagate to child scopes. Arguably, this may not make much sense for flush conditions triggered by errors (i.e. you don't necessarily need details about what happened at the children if the error occured in the parent). Potentially there could be cases when wrong output from the call triggers an error in the caller, but the most important reasoning to propagate flush condition down is for slow operations, because slowness in the parent scope on many occasions will be due to children. 
+
+3. Two-way propagation. Current implementation propagates flush conditions both ways to help diagnosing both errors and slow operations. Just to clarify, current behavior in example 1.2 is different due to two-way propagation:
+```python
+ as trace:
+    trace.info(info_key="info_val")
+    trace.debug(debug_key="debug_val")
+    with TraceScope("nested-op", logger) as nested_trace:
+        nested_trace.debug(nested_debug_key="nested_debug_val")
+    trace.error(error_key="error_val")
+    # flush condition is triggered in the parent scope, but nested_debug_val is logged b/c 2-way propagation
+```
+
+Important optimization tradeoff is that log lines might be out of their original chronological order, but our tooling support (such as splunk) makes this problem less relevant (could still be an inconvenience in case of source log file inspection).
