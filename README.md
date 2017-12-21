@@ -55,3 +55,24 @@ def get_stream(self, obj_hash, obj_type):
 ```
 
 # Conditional logging
+
+## Overview 
+Conditional logging refers to the ability to dynamically lower the level of logging (i.e. output more details) in case of an error or a slow operation. For brevity, condition that triggers output of the detailed log information from the buffer will be referred to as *flush condition*. The basic idea behind this is buffering the set log records for each scope and flushing all of them or only a filtered portion depending on whether the flush condition occured. This is accomplished via *ScopedConditionalMemoryHandler* class which wraps around any log Handler and implements the buffering logic outlined above. It interacts with current TraceScope by retrieving scope details from thread local storage. 
+
+## Flush level and default level
+ScopedConditionalMemoryHandler can be customized by providing two different logging levels: default level and flush level. Default level is the one used when the end of a scope is reached and no flush condition is encountered. For example, if the default level is set to INFO, the code below will only emit log records of INFO level and above:
+```python
+with TraceScope("blah-op", self.logger) as trace:
+    trace.info(info_key="info_val")
+    trace.debug(debug_key="debug_val")
+    # no flush condition encountered, so DEBUG level logs are discarded at the end of the scope
+```
+
+Flush condition is triggered by any logging at the customizable *flush_level* or above. For example, if the flush level set to *WARNING*, any log call with level of WARNING or ERROR will trigger the flush condition. Slow operation detection is implemented in TraceScope by providing a threshold latency above which a WARNING is emitted thus triggering a flush condition if the flush level is set to WARNING
+
+There are two alternative approaches to the way scopes could be handled in case of a flush condition that make sense.
+
+1. Bubble up. In this approach, flush conditions for each scope are handled independently of flush conditions in its sibling or child scopes. Once the flush condition is encountered, records for the current scope are flushed and flush condition is propagated to its parent scope. This ensures that we output all the details that led to the error, but if the error is occured in the parent scope, we don't need to output details of the child scope. Examples:
+
+
+2. Trickle down. 
