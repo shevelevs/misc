@@ -22,6 +22,8 @@ Example format string:
 
 %(asctime)s %(levelname)s %(name)s %(message)s **%(bqnt_extra)s**
 
+Currently, standard format for all named arguments to the log calls is a form key=value, where value is recursively formatted for types such as dict and list. Large values are truncated.
+
 # Classes
 
 Figure 1 shows a brief overview of main classes and the way they are related to standard python logging classes:
@@ -113,7 +115,7 @@ with TraceScope("some-op", logger) as trace:
 
 3. Two-way propagation. Current implementation propagates flush conditions both ways to help diagnosing both errors and slow operations. Just to clarify, current behavior in example 1.2 is different due to two-way propagation:
 ```python
- as trace:
+with TraceScope("some-op", logger) as trace:
     trace.info(info_key="info_val")
     trace.debug(debug_key="debug_val")
     with TraceScope("nested-op", logger) as nested_trace:
